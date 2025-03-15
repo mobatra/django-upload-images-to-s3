@@ -30,15 +30,29 @@ The **frontend (or API client like Insomnia)** sends a **POST request** to uploa
 ### 🔹 Validation (Serializer)
 ```python
 from rest_framework import serializers
-from transactions.models import Transaction
+from .models import Transaction
 
 class TransactionSerializer(serializers.ModelSerializer):
+    receipt_url = serializers.SerializerMethodField()  # ✅ Dynamically generate file URL
+
     class Meta:
         model = Transaction
-        fields = ['id', 'user', 'amount', 'category', 'description', 'date', 'receipt']
-        read_only_fields = ['id', 'user', 'date']
+        fields = ["id", "amount", "category", "description", "date", "receipt", "receipt_url"]
+
+    def get_receipt_url(self, obj):
+        if obj.receipt:
+            return obj.receipt.url  # ✅ Get the actual file URL
+        return None
 ```
-- **`ImageField`** in `receipt` automatically checks **file type and size**.
+#### 🔍 How receipt_url Works
+
+- serializers.SerializerMethodField() creates a computed field.
+
+- DRF automatically calls get_receipt_url(self, obj) when serializing data.
+
+- obj.receipt.url retrieves the public URL for the uploaded file.
+
+
 
 ---
 
